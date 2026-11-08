@@ -139,6 +139,7 @@ Android Studio (Ladybug ou mais novo) → **Open** nesta pasta → **Build → B
 - Só um app de VPN funciona por vez no Android. Ativar outra VPN desliga o Velar DNS.
 - A religação automática após reiniciar depende da permissão de VPN continuar válida e das regras do firmware da TV Box.
 - A proteção usa ~10-15 MB de memória para as listas de domínios — aceitável para a maioria das TV Boxes.
+- **Contador de aparelhos (desde 1.2.0):** cada instalação gera um código aleatório e, com a proteção ligada, avisa um banco Supabase a cada 30 min (`stats/DeviceCounter.kt`). Não envia nome, conta, sites visitados nem consultas DNS. Totais: função `stats()` no projeto Supabase `velar-dns`.
 
 ---
 

@@ -18,6 +18,7 @@ import app.velardns.VelarApp
 import app.velardns.data.DohProvider
 import app.velardns.data.Prefs
 import app.velardns.filter.BlockLog
+import app.velardns.stats.DeviceCounter
 import app.velardns.dns.FailoverResolver
 import app.velardns.dns.Packets
 import app.velardns.ui.MainActivity
@@ -86,6 +87,7 @@ class VelarVpnService : VpnService() {
     private var loopRunning: AtomicBoolean? = null
     private var resolver: FailoverResolver? = null
     private var startedAt = 0L
+    private var counterJob: Job? = null
 
     override fun onCreate() {
         super.onCreate()
@@ -160,6 +162,8 @@ class VelarVpnService : VpnService() {
         val running = AtomicBoolean(true)
         loopRunning = running
         readJob = scope.launch { readLoop(pfd, r, running) }
+        // Contador anônimo de aparelhos ativos (um só laço por serviço).
+        if (counterJob?.isActive != true) counterJob = DeviceCounter.startLoop(this, scope)
     }
 
     /**
@@ -229,6 +233,8 @@ class VelarVpnService : VpnService() {
             .edit()
             .putLong("blocked_total", BlockLog.blockedCount.value)
             .apply()
+        counterJob?.cancel()
+        counterJob = null
         closeTunnel()
         VpnState.status.value = VpnStatus.Off
         VpnState.latencyMs.value = null
