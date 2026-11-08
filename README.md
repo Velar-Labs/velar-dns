@@ -19,7 +19,7 @@ Jeito mais simples: edite o arquivo `version.txt` (ex.: troque `1.0.0` por `1.1.
 Também funciona criar pelo site (**Releases → Draft a new release → tag `v1.1.0` → Publish release**): o workflow anexa o APK em uns 3 minutos.
 
 Link fixo da versão mais nova (bom para enviar a clientes):
-`https://github.com/NataNpg/velar-dns/releases/latest/download/velar-dns.apk`
+`https://github.com/velar-labs/velar-dns/releases/latest/download/velar-dns.apk`
 
 ### Assinatura (importante para atualizações)
 
