@@ -53,6 +53,7 @@ fun ProtectionScreen(settings: VelarSettings) {
     val entries by BlockLog.entries.collectAsStateWithLifecycle()
     val stats by BlockStats.snapshot.collectAsStateWithLifecycle()
     val sourceStatus by BlocklistManager.sourceStatus.collectAsStateWithLifecycle()
+    var whitelist by remember { mutableStateOf(BlocklistManager.whitelist.sorted()) }
     var updating by remember { mutableStateOf(false) }
     val lastUpdate = remember { BlocklistManager.lastUpdateMillis(context) }
     val domainsLoaded = BlocklistManager.matcher.size
@@ -216,29 +217,58 @@ fun ProtectionScreen(settings: VelarSettings) {
                 }
             }
 
-            // Log de bloqueios recentes
-            if (entries.isNotEmpty()) {
+            // Domínios liberados pelo usuário (OK remove da lista)
+            if (whitelist.isNotEmpty()) {
                 Spacer(Modifier.height(4.dp))
-                Text("Bloqueios recentes", color = VColors.Muted, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
-                entries.take(20).forEach { entry ->
-                    Row(
-                        Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(9.dp))
-                            .background(VColors.Surface)
-                            .border(1.dp, VColors.Line, RoundedCornerShape(9.dp))
-                            .padding(horizontal = 16.dp, vertical = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
+                Text("Liberados por você (OK remove)", color = VColors.Muted, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+                whitelist.forEach { domain ->
+                    Focusable(
+                        onClick = {
+                            BlocklistManager.removeFromWhitelist(context, domain)
+                            whitelist = BlocklistManager.whitelist.sorted()
+                            Toast.makeText(context, "$domain voltou a ser bloqueado", Toast.LENGTH_SHORT).show()
+                        },
+                        modifier = Modifier.fillMaxWidth(),
                     ) {
-                        VIcon(VIcons.Ban, VColors.Coral, 14.dp)
-                        Column(
-                            Modifier
-                                .weight(1f)
-                                .padding(start = 10.dp),
+                        Row(
+                            Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            Text(entry.domain, color = VColors.Text, fontSize = 12.sp, maxLines = 1)
+                            VIcon(VIcons.ShieldCheck, VColors.Lime, 14.dp)
+                            Text(
+                                domain, color = VColors.Text, fontSize = 12.sp, maxLines = 1,
+                                modifier = Modifier.weight(1f).padding(start = 10.dp),
+                            )
                         }
-                        Text(entry.timeFormatted, color = VColors.Faint, fontSize = 10.sp)
+                    }
+                }
+            }
+
+            // Log de bloqueios recentes (OK libera o domínio)
+            val recent = entries.filter { it.domain.lowercase() !in whitelist }.distinctBy { it.domain }
+            if (recent.isNotEmpty()) {
+                Spacer(Modifier.height(4.dp))
+                Text("Bloqueios recentes (OK libera o domínio)", color = VColors.Muted, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+                recent.take(20).forEach { entry ->
+                    Focusable(
+                        onClick = {
+                            BlocklistManager.addToWhitelist(context, entry.domain)
+                            whitelist = BlocklistManager.whitelist.sorted()
+                            Toast.makeText(context, "${entry.domain} liberado", Toast.LENGTH_SHORT).show()
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Row(
+                            Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            VIcon(VIcons.Ban, VColors.Coral, 14.dp)
+                            Text(
+                                entry.domain, color = VColors.Text, fontSize = 12.sp, maxLines = 1,
+                                modifier = Modifier.weight(1f).padding(start = 10.dp),
+                            )
+                            Text(entry.timeFormatted, color = VColors.Faint, fontSize = 10.sp)
+                        }
                     }
                 }
             }
