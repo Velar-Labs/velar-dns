@@ -4,6 +4,7 @@ import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -34,6 +35,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.velardns.data.Prefs
 import app.velardns.data.VelarSettings
 import app.velardns.filter.BlockLog
+import app.velardns.filter.BlockStats
 import app.velardns.filter.BlocklistManager
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
@@ -49,6 +51,7 @@ fun ProtectionScreen(settings: VelarSettings) {
 
     val blockedCount by BlockLog.blockedCount.collectAsStateWithLifecycle()
     val entries by BlockLog.entries.collectAsStateWithLifecycle()
+    val stats by BlockStats.snapshot.collectAsStateWithLifecycle()
     var updating by remember { mutableStateOf(false) }
     val lastUpdate = remember { BlocklistManager.lastUpdateMillis(context) }
     val domainsLoaded = BlocklistManager.matcher.size
@@ -77,6 +80,52 @@ fun ProtectionScreen(settings: VelarSettings) {
             ) {
                 StatCard("Ameaças bloqueadas", "$blockedCount", Modifier.weight(1f))
                 StatCard("Domínios na lista", formatNumber(domainsLoaded), Modifier.weight(1f))
+            }
+
+            // Bloqueios por dia (últimos 7) e domínios mais bloqueados
+            if (stats.days.any { it.second > 0 }) {
+                Text("Últimos 7 dias", color = VColors.Muted, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+                val maxDay = stats.days.maxOf { it.second }.coerceAtLeast(1)
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(9.dp))
+                        .background(VColors.Surface)
+                        .border(1.dp, VColors.Line, RoundedCornerShape(9.dp))
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.Bottom,
+                ) {
+                    stats.days.forEach { (day, n) ->
+                        Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text("$n", color = VColors.Muted, fontSize = 10.sp)
+                            Box(
+                                Modifier
+                                    .padding(top = 3.dp)
+                                    .fillMaxWidth()
+                                    .height((4 + 44 * n / maxDay).dp)
+                                    .clip(RoundedCornerShape(3.dp))
+                                    .background(if (n > 0) VColors.Lime else VColors.Line),
+                            )
+                            Text(day.substring(6) + "/" + day.substring(4, 6), color = VColors.Faint, fontSize = 9.sp)
+                        }
+                    }
+                }
+                Text("Mais bloqueados", color = VColors.Muted, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+                stats.top.forEach { (domain, n) ->
+                    Row(
+                        Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(9.dp))
+                            .background(VColors.Surface)
+                            .border(1.dp, VColors.Line, RoundedCornerShape(9.dp))
+                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(domain, color = VColors.Text, fontSize = 12.sp, maxLines = 1, modifier = Modifier.weight(1f))
+                        Text("${n}x", color = VColors.Coral, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+                    }
+                }
             }
 
             // Status da lista

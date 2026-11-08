@@ -6,6 +6,7 @@ import android.app.NotificationManager
 import android.os.Build
 import app.velardns.data.Prefs
 import app.velardns.filter.BlockLog
+import app.velardns.filter.BlockStats
 import app.velardns.filter.BlocklistManager
 import app.velardns.filter.BlocklistUpdater
 
@@ -19,6 +20,7 @@ class VelarApp : Application() {
         super.onCreate()
         Prefs.init(this)
         BlocklistManager.init(this)
+        BlockStats.init(this)
         BlockLog.restoreCount(
             getSharedPreferences("velar", MODE_PRIVATE).getLong("blocked_total", 0L)
         )
