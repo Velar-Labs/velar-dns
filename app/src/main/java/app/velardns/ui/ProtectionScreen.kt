@@ -52,6 +52,7 @@ fun ProtectionScreen(settings: VelarSettings) {
     val blockedCount by BlockLog.blockedCount.collectAsStateWithLifecycle()
     val entries by BlockLog.entries.collectAsStateWithLifecycle()
     val stats by BlockStats.snapshot.collectAsStateWithLifecycle()
+    val sourceStatus by BlocklistManager.sourceStatus.collectAsStateWithLifecycle()
     var updating by remember { mutableStateOf(false) }
     val lastUpdate = remember { BlocklistManager.lastUpdateMillis(context) }
     val domainsLoaded = BlocklistManager.matcher.size
@@ -161,7 +162,7 @@ fun ProtectionScreen(settings: VelarSettings) {
                             Toast.makeText(
                                 context,
                                 "Atualizado: ${formatNumber(result.totalDomains)} domínios" +
-                                    if (result.errors.isNotEmpty()) " (${result.errors.size} fonte(s) falharam)" else "",
+                                    if (result.errors.isNotEmpty()) "\nFalhou: ${result.errors.joinToString("; ")}" else "",
                                 Toast.LENGTH_LONG,
                             ).show()
                         } catch (e: Exception) {
@@ -192,6 +193,7 @@ fun ProtectionScreen(settings: VelarSettings) {
             Spacer(Modifier.height(4.dp))
             Text("Fontes", color = VColors.Muted, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
             BlocklistManager.SOURCES.forEach { source ->
+                val failure = sourceStatus[source.id]
                 Row(
                     Modifier
                         .fillMaxWidth()
@@ -203,9 +205,14 @@ fun ProtectionScreen(settings: VelarSettings) {
                 ) {
                     Column(Modifier.weight(1f)) {
                         Text(source.name, color = VColors.Text, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
-                        Text(source.description, color = VColors.Muted, fontSize = 10.sp)
+                        Text(
+                            if (failure != null) "Falhou na última atualização: $failure" else source.description,
+                            color = if (failure != null) VColors.Coral else VColors.Muted,
+                            fontSize = 10.sp,
+                        )
                     }
-                    VIcon(VIcons.ShieldCheck, VColors.Lime, 16.dp)
+                    if (failure != null) VIcon(VIcons.Ban, VColors.Coral, 16.dp)
+                    else VIcon(VIcons.ShieldCheck, VColors.Lime, 16.dp)
                 }
             }
 

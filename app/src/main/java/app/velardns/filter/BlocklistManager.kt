@@ -3,12 +3,17 @@ package app.velardns.filter
 import android.content.Context
 import android.util.Log
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.io.BufferedReader
 import java.io.File
 import java.io.InputStreamReader
+import java.net.SocketTimeoutException
+import java.net.UnknownHostException
 import java.util.concurrent.TimeUnit
 
 /**
@@ -50,6 +55,11 @@ object BlocklistManager {
     )
 
     val matcher = DomainMatcher()
+
+    /** Resultado do último download de cada fonte (chave = id da fonte). Vazio até a 1ª atualização. */
+    private val _sourceStatus = MutableStateFlow<Map<String, String?>>(emptyMap())
+    /** Valor null = baixou bem; texto = motivo da falha. */
+    val sourceStatus: StateFlow<Map<String, String?>> = _sourceStatus.asStateFlow()
 
     /** Lista branca do usuário. */
     @Volatile
@@ -96,20 +106,26 @@ object BlocklistManager {
     suspend fun update(): UpdateResult = withContext(Dispatchers.IO) {
         val errors = mutableListOf<String>()
         val downloaded = mutableListOf<File>()
+        val status = mutableMapOf<String, String?>()
 
         for (source in SOURCES) {
             try {
                 val file = downloadList(source)
                 downloaded.add(file)
+                status[source.id] = null
                 Log.i(TAG, "Baixada: ${source.name}")
             } catch (e: Exception) {
                 Log.w(TAG, "Falha ao baixar ${source.name}", e)
-                errors.add(source.name)
+                val reason = describeError(e)
+                status[source.id] = reason
+                errors.add("${source.name}: $reason")
                 // Usa o cache anterior se existir
                 val cached = File(appDir, "${source.id}.txt")
                 if (cached.exists()) downloaded.add(cached)
             }
         }
+
+        _sourceStatus.value = status
 
         // Combinar tudo num arquivo
         val merged = File(appDir, MERGED_FILE)
@@ -134,16 +150,29 @@ object BlocklistManager {
     }
 
     private fun downloadList(source: BlocklistSource): File {
-        val request = Request.Builder().url(source.url).build()
-        val response = httpClient.newCall(request).execute()
-        if (!response.isSuccessful) throw Exception("HTTP ${response.code}")
+        val request = Request.Builder()
+            .url(source.url)
+            .header("User-Agent", "VelarDNS/1.3.1 (Android TV)")
+            .build()
         val file = File(appDir, "${source.id}.txt")
-        response.body?.let { body ->
-            file.outputStream().use { out ->
-                body.byteStream().copyTo(out)
-            }
+        val tmp = File(appDir, "${source.id}.tmp")
+        httpClient.newCall(request).execute().use { response ->
+            if (!response.isSuccessful) throw Exception("HTTP ${response.code}")
+            val body = response.body ?: throw Exception("resposta vazia")
+            // Baixa para um arquivo temporário: se cair no meio, o cache anterior continua intacto.
+            tmp.outputStream().use { out -> body.byteStream().copyTo(out) }
         }
+        if (tmp.length() == 0L) { tmp.delete(); throw Exception("lista vazia") }
+        if (!tmp.renameTo(file)) { tmp.copyTo(file, overwrite = true); tmp.delete() }
         return file
+    }
+
+    /** Motivo curto e legível para mostrar ao usuário. */
+    private fun describeError(e: Exception): String = when (e) {
+        is SocketTimeoutException -> "tempo esgotado"
+        is UnknownHostException -> "site não encontrado"
+        is javax.net.ssl.SSLException -> "erro de conexão segura"
+        else -> e.message?.take(40) ?: "erro desconhecido"
     }
 
     // ---- Whitelist do usuário ----
