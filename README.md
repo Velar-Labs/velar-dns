@@ -1,5 +1,67 @@
-# Velar DNS
+Velar DNS
+Encrypted DNS (DNS-over-HTTPS) + threat protection for Android TV, Google TV, and TV Box.
 
+The app creates a local VPN that intercepts only DNS queries and sends them via HTTPS (port 443) to your chosen server—Cloudflare, Google, Quad9, AdGuard, or a custom address. The rest of your internet traffic does not pass through the app.
+
+Threat Protection
+Velar DNS blocks known malicious domains before the DNS query is even resolved. If a domain is on the blocklist, the app returns 0.0.0.0—ensuring your device never connects to the threat.
+
+List sources (public, free, and community-maintained):
+
+Steven Black — ~170,000 malware and phishing domains
+URLhaus (abuse.ch) — malware distribution
+Phishing Army — confirmed phishing sites
+The lists are automatically downloaded every 24 hours. Protection is enabled by default and can be toggled off on the "Protection" screen.
+
+Whitelist: If a legitimate domain is blocked by mistake, you can add it to the whitelist via the "Protection" screen.
+
+How to generate the APK (GitHub Actions)
+Create a GitHub repository and upload this entire folder (including the .github/ directory).
+Every time you push to the `main` branch, the "Generate APK" workflow will compile the app.
+Go to the "Actions" tab, select the most recent run, and download the `velar-dns-apk` artifact.
+You can also trigger it manually: Actions → Generate APK → Run workflow.
+
+Publishing a release
+The simplest method: edit the `version.txt` file (e.g., change 1.0.0 to 1.1.0) and, optionally, update the `NOVIDADES.md` (What's New) file. When you push to the `main` branch, the workflow compiles, signs, and creates a "Release v1.1.0" containing the `velar-dns.apk` file. Pushes to `main` that do not change the version will only generate an APK within the "Actions" tab, without creating a new release.
+
+You can also create a release via the website (Releases → Draft a new release → tag `v1.1.0` → Publish release); the workflow will attach the APK within about 3 minutes.
+
+Permanent link for the latest version (useful for sharing with clients): https://github.com/velar-labs/velar-dns/releases/latest/download/velar-dns.apk
+
+Signing (important for updates)
+If no key is configured, the APK will be signed with a debug key that changes with every build. While it can be installed, subsequent versions cannot be installed over it—the user would have to uninstall the existing app first.
+
+To set a fixed signing key, generate one on your computer:
+
+keytool -genkeypair -v -keystore velar.jks -alias velar -keyalg RSA -keysize 2048 -validity 10000
+base64 -w0 velar.jks > velar.jks.b64
+Then, add the following to Settings → Secrets and variables → Actions:
+
+Secret	Value
+VELAR_KEYSTORE_BASE64	contents of `velar.jks.b64`
+VELAR_KEYSTORE_PASSWORD	keystore password
+VELAR_KEY_ALIAS	`velar`
+VELAR_KEY_PASSWORD	key password
+Keep the `velar.jks` file and the passwords in a secure place; if the key is lost, it will no longer be possible to update the installed app.
+
+Compiling on your computer
+Android Studio (Ladybug or newer) → Open this folder → Build → Build APK(s). Requires JDK 17.
+
+How it works
+vpn/VelarVpnService.kt — Local VPN: virtual address 10.111.222.2, virtual DNS 10.111.222.1. Only the route for the virtual DNS (and, if "Force all DNS" is enabled, routes for known public DNS servers) enters the tunnel.
+dns/Packets.kt — Reads IPv4/UDP packets from port 53 and constructs the responses.
+dns/DoH.kt — DoH (RFC 8484) client using fixed IP addresses for each server, ensuring independence from the network's DNS. Automatically switches servers after 3 consecutive failures. When protection is active, it checks each domain against blocklists before sending the query.
+filter/ — DNS-based blocking engine: DomainMatcher (O(1) HashSet with subdomain matching), BlocklistManager (handles downloading, caching, and merging lists), BlockLog (in-memory log of the last 200 blocked requests), and BlocklistUpdater (automatic updates every 24 hours).
+diag/Diagnostics.kt — Tests for the Diagnostics screen.
+ui/ — Screens built with Jetpack Compose, navigable via remote control.
+Notes
+If the TV displays "Private DNS cannot be accessed," disable Private DNS in the Android network settings.
+For maximum stability, set Velar DNS as an "always-on" VPN (Settings → "Always-on VPN").
+Only one VPN app can be active at a time on Android. Enabling another VPN will disable Velar DNS.
+Automatic reconnection after a reboot depends on the VPN permission remaining valid and the specific firmware rules of the TV Box.
+The protection feature uses approximately 10–15 MB of memory for domain lists—an acceptable amount for most TV Boxes.# Velar DNS
+
+Portugues
 DNS criptografado (DNS-over-HTTPS) + proteção contra ameaças para Android TV, Google TV e TV Box.
 
 O app cria uma VPN **local** que captura só as consultas DNS e as envia por HTTPS (porta 443) para o servidor escolhido — Cloudflare, Google, Quad9, AdGuard ou um endereço personalizado. O restante da internet não passa pelo app.
