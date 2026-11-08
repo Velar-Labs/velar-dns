@@ -14,9 +14,9 @@ Também dá para rodar manualmente: **Actions → Gerar APK → Run workflow**.
 
 ### Publicar uma versão em Releases
 
-Crie uma tag começando com `v` (ex.: `v1.1.0`). O workflow compila, assina e cria a página em **Releases** com o arquivo `velar-dns.apk`.
+Jeito mais simples: edite o arquivo `version.txt` (ex.: troque `1.0.0` por `1.1.0`) e, se quiser, o texto de `NOVIDADES.md`. Ao salvar na branch `main`, o workflow compila, assina e cria a Release `v1.1.0` com o arquivo `velar-dns.apk`. Envios para a `main` sem mudar a versão só geram o APK em Actions, sem nova Release.
 
-Pelo site: **Releases → Draft a new release → Choose a tag → digite `v1.1.0` → Create new tag → Publish release**. O workflow anexa o APK sozinho em uns 3 minutos.
+Também funciona criar pelo site (**Releases → Draft a new release → tag `v1.1.0` → Publish release**): o workflow anexa o APK em uns 3 minutos.
 
 Link fixo da versão mais nova (bom para enviar a clientes):
 `https://github.com/NataNpg/velar-dns/releases/latest/download/velar-dns.apk`

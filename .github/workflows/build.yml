@@ -16,7 +16,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       VELAR_VERSION_CODE: ${{ github.run_number }}
-      VELAR_VERSION_NAME: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || '' }}
       KEYSTORE_B64: ${{ secrets.VELAR_KEYSTORE_BASE64 }}
       VELAR_KEYSTORE_PASSWORD: ${{ secrets.VELAR_KEYSTORE_PASSWORD }}
       VELAR_KEY_ALIAS: ${{ secrets.VELAR_KEY_ALIAS }}
@@ -33,6 +32,25 @@ jobs:
           java-version: "17"
 
       - uses: gradle/actions/setup-gradle@v4
+
+      - name: Definir versão
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Versão: da tag (v1.2.0) ou do arquivo version.txt na branch main.
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            NAME="${GITHUB_REF_NAME#v}"
+            PUBLISH=1
+          else
+            NAME="$(tr -d '[:space:]' < version.txt)"
+            # Na main, publica só se essa versão ainda não tem Release.
+            if gh release view "v$NAME" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then PUBLISH=0; else PUBLISH=1; fi
+            [ "$GITHUB_REF" = "refs/heads/main" ] || PUBLISH=0
+          fi
+          echo "Versão $NAME (publicar em Releases: $PUBLISH)"
+          echo "VELAR_VERSION_NAME=$NAME" >> "$GITHUB_ENV"
+          echo "RELEASE_TAG=v$NAME" >> "$GITHUB_ENV"
+          echo "PUBLISH=$PUBLISH" >> "$GITHUB_ENV"
 
       - name: Preparar chave de assinatura (opcional)
         if: env.KEYSTORE_B64 != ''
@@ -89,18 +107,21 @@ jobs:
           path: dist/*.apk
 
       - name: Publicar em Releases
-        if: startsWith(github.ref, 'refs/tags/v')
+        # Só publica APK assinado com a chave fixa.
+        if: env.PUBLISH == '1' && env.VELAR_KEYSTORE_PATH != ''
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           # Nome fixo: o link .../releases/latest/download/velar-dns.apk sempre aponta para a versão mais nova.
-          cp dist/*.apk dist/velar-dns.apk
-          if gh release view "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
+          cp app/build/outputs/apk/release/*.apk dist/velar-dns.apk
+          if gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
             # Release já criada pelo site: só anexa (ou substitui) o APK.
-            gh release upload "$GITHUB_REF_NAME" dist/velar-dns.apk --repo "$GITHUB_REPOSITORY" --clobber
+            gh release upload "$RELEASE_TAG" dist/velar-dns.apk --repo "$GITHUB_REPOSITORY" --clobber
           else
-            gh release create "$GITHUB_REF_NAME" dist/velar-dns.apk \
+            gh release create "$RELEASE_TAG" dist/velar-dns.apk \
               --repo "$GITHUB_REPOSITORY" \
-              --title "Velar DNS $GITHUB_REF_NAME" \
-              --notes "APK para Android TV, Google TV e TV Box (Android 6 ou mais novo). Baixe **velar-dns.apk** abaixo e instale na TV. Quem já tem o app instalado pode atualizar por cima."
+              --target "$GITHUB_SHA" \
+              --title "Velar DNS $RELEASE_TAG" \
+              --notes-file NOVIDADES.md
           fi
+          echo "Publicado: https://github.com/$GITHUB_REPOSITORY/releases/tag/$RELEASE_TAG"
