@@ -110,8 +110,11 @@ fun SettingsScreen(settings: VelarSettings) {
                     .padding(horizontal = 16.dp, vertical = 12.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text("Versão", color = VColors.Text, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
-                Text(BuildConfig.VERSION_NAME, color = VColors.Muted, fontSize = 13.sp)
+                Column(Modifier.weight(1f)) {
+                    Text("Velar DNS ${BuildConfig.VERSION_NAME}", color = VColors.Text, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+                    Text("Desenvolvido por Velar Labs", color = VColors.Muted, fontSize = 10.sp)
+                }
+                LogoMark(22.dp)
             }
         }
 

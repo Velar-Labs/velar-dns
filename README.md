@@ -61,3 +61,7 @@ Android Studio (Ladybug ou mais novo) → **Open** nesta pasta → **Build → B
 - Para máxima estabilidade, marque o Velar DNS como **VPN sempre ativa** (Ajustes → "VPN sempre ativa").
 - Só um app de VPN funciona por vez no Android. Ativar outra VPN desliga o Velar DNS.
 - A religação automática após reiniciar depende da permissão de VPN continuar válida e das regras do firmware da TV Box.
+
+---
+
+Desenvolvido por **Velar Labs**.

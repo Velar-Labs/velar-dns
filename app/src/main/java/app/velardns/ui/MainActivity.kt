@@ -173,6 +173,6 @@ private fun NavRail(current: Screen, onSelect: (Screen) -> Unit) {
             }
         }
         Spacer(Modifier.weight(1f))
-        Text("versão ${BuildConfig.VERSION_NAME}", color = VColors.Faint, fontSize = 9.sp, modifier = Modifier.padding(start = 10.dp))
+        Text("versão ${BuildConfig.VERSION_NAME} · Velar Labs", color = VColors.Faint, fontSize = 9.sp, modifier = Modifier.padding(start = 10.dp))
     }
 }
