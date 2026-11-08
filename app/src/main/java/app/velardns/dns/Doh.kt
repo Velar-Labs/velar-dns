@@ -18,6 +18,7 @@ import java.io.IOException
 import java.net.InetAddress
 import java.util.concurrent.TimeUnit
 import app.velardns.filter.BlockLog
+import app.velardns.filter.BlockStats
 import app.velardns.filter.BlocklistManager
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.coroutines.cancellation.CancellationException
@@ -114,6 +115,7 @@ class FailoverResolver(
         order = Providers.failoverOrder(selected)
         index = 0
         failures.set(0)
+        DnsCache.clear()
         onProviderChanged(current)
     }
 
@@ -125,14 +127,18 @@ class FailoverResolver(
             val domain = DnsMessage.extractDomain(query)
             if (domain != null && BlocklistManager.shouldBlock(domain)) {
                 BlockLog.record(domain)
+                BlockStats.record(domain)
                 return DnsMessage.withId(DnsMessage.blocked(query), id)
             }
         }
+
+        DnsCache.get(query)?.let { return it }
 
         val first = current
         return try {
             val start = SystemClock.elapsedRealtime()
             val response = Doh.query(first, query)
+            DnsCache.put(query, response)
             failures.set(0)
             onLatency(SystemClock.elapsedRealtime() - start)
             DnsMessage.withId(response, id)
@@ -146,7 +152,9 @@ class FailoverResolver(
             val pos = list.indexOfFirst { it.id == first.id }.coerceAtLeast(0)
             val alternative = list[(pos + 1) % list.size]
             try {
-                DnsMessage.withId(Doh.query(alternative, query), id)
+                val response = Doh.query(alternative, query)
+                DnsCache.put(query, response)
+                DnsMessage.withId(response, id)
             } catch (e2: CancellationException) {
                 throw e2
             } catch (e2: Exception) {

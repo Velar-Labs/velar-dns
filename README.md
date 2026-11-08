@@ -51,7 +51,7 @@ How it works
 vpn/VelarVpnService.kt — Local VPN: virtual address 10.111.222.2, virtual DNS 10.111.222.1. Only the route for the virtual DNS (and, if "Force all DNS" is enabled, routes for known public DNS servers) enters the tunnel.
 dns/Packets.kt — Reads IPv4/UDP packets from port 53 and constructs the responses.
 dns/DoH.kt — DoH (RFC 8484) client using fixed IP addresses for each server, ensuring independence from the network's DNS. Automatically switches servers after 3 consecutive failures. When protection is active, it checks each domain against blocklists before sending the query.
-filter/ — DNS-based blocking engine: DomainMatcher (O(1) HashSet with subdomain matching), BlocklistManager (handles downloading, caching, and merging lists), BlockLog (in-memory log of the last 200 blocked requests), and BlocklistUpdater (automatic updates every 24 hours).
+filter/ — DNS-based blocking engine (v1.3: BlockStats keeps 7-day and top-domain stats; dns/DnsCache keeps DoH answers in memory): DomainMatcher (O(1) HashSet with subdomain matching), BlocklistManager (handles downloading, caching, and merging lists), BlockLog (in-memory log of the last 200 blocked requests), and BlocklistUpdater (automatic updates every 24 hours).
 diag/Diagnostics.kt — Tests for the Diagnostics screen.
 ui/ — Screens built with Jetpack Compose, navigable via remote control.
 Notes
@@ -77,6 +77,12 @@ O Velar DNS bloqueia domínios conhecidos como maliciosos antes mesmo de resolve
 - **Phishing Army** — phishing confirmado
 
 As listas são baixadas automaticamente a cada 24 horas. A proteção vem ativada por padrão e pode ser desligada na tela "Proteção".
+
+**IPv6:** domínios bloqueados também recebem resposta de bloqueio para consultas AAAA (`::`), então não escapam pelo IPv6.
+
+**Estatísticas:** a tela Proteção mostra os bloqueios dos últimos 7 dias e os domínios mais bloqueados, guardados só no aparelho.
+
+**Cache DNS:** respostas ficam em memória pelo tempo de validade (TTL, no máximo 10 min), para abrir sites mais rápido.
 
 **Whitelist:** se um domínio legítimo for bloqueado por engano, você pode adicioná-lo à whitelist na tela de Proteção.
 

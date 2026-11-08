@@ -18,6 +18,7 @@ import app.velardns.VelarApp
 import app.velardns.data.DohProvider
 import app.velardns.data.Prefs
 import app.velardns.filter.BlockLog
+import app.velardns.filter.BlockStats
 import app.velardns.stats.DeviceCounter
 import app.velardns.dns.FailoverResolver
 import app.velardns.dns.Packets
@@ -233,6 +234,7 @@ class VelarVpnService : VpnService() {
             .edit()
             .putLong("blocked_total", BlockLog.blockedCount.value)
             .apply()
+        BlockStats.save()
         counterJob?.cancel()
         counterJob = null
         closeTunnel()
