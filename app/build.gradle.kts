@@ -17,8 +17,10 @@ android {
         applicationId = "app.velardns.tv"
         minSdk = 23
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0.0"
+        // No GitHub Actions: versionCode = número da execução (sempre cresce),
+        // versionName = nome da versão marcada (ex.: v1.2.0 -> 1.2.0).
+        versionCode = System.getenv("VELAR_VERSION_CODE")?.toIntOrNull() ?: 1
+        versionName = System.getenv("VELAR_VERSION_NAME")?.removePrefix("v")?.ifBlank { null } ?: "1.0.0"
     }
 
     signingConfigs {

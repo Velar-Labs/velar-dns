@@ -12,6 +12,15 @@ O app cria uma VPN **local** que captura só as consultas DNS e as envia por HTT
 
 Também dá para rodar manualmente: **Actions → Gerar APK → Run workflow**.
 
+### Publicar uma versão em Releases
+
+Crie uma tag começando com `v` (ex.: `v1.1.0`). O workflow compila, assina e cria a página em **Releases** com o arquivo `velar-dns.apk`.
+
+Pelo site: **Releases → Draft a new release → Choose a tag → digite `v1.1.0` → Create new tag → Publish release**. O workflow anexa o APK sozinho em uns 3 minutos.
+
+Link fixo da versão mais nova (bom para enviar a clientes):
+`https://github.com/NataNpg/velar-dns/releases/latest/download/velar-dns.apk`
+
 ### Assinatura (importante para atualizações)
 
 Sem configurar uma chave, o APK sai assinado com uma chave de debug que **muda a cada execução**. Ele instala, mas a próxima versão não instala por cima — o cliente teria que desinstalar antes.

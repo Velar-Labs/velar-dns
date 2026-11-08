@@ -3,12 +3,20 @@ name: Gerar APK
 on:
   push:
     branches: [main]
+    tags: ["v*"]          # marcar uma versão (ex.: v1.1.0) publica em Releases
+  release:
+    types: [published]    # release criada pelo site também recebe o APK
   workflow_dispatch:
+
+permissions:
+  contents: write         # necessário para criar a Release
 
 jobs:
   build:
     runs-on: ubuntu-latest
     env:
+      VELAR_VERSION_CODE: ${{ github.run_number }}
+      VELAR_VERSION_NAME: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || '' }}
       KEYSTORE_B64: ${{ secrets.VELAR_KEYSTORE_BASE64 }}
       VELAR_KEYSTORE_PASSWORD: ${{ secrets.VELAR_KEYSTORE_PASSWORD }}
       VELAR_KEY_ALIAS: ${{ secrets.VELAR_KEY_ALIAS }}
@@ -79,3 +87,20 @@ jobs:
         with:
           name: velar-dns-apk
           path: dist/*.apk
+
+      - name: Publicar em Releases
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Nome fixo: o link .../releases/latest/download/velar-dns.apk sempre aponta para a versão mais nova.
+          cp dist/*.apk dist/velar-dns.apk
+          if gh release view "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
+            # Release já criada pelo site: só anexa (ou substitui) o APK.
+            gh release upload "$GITHUB_REF_NAME" dist/velar-dns.apk --repo "$GITHUB_REPOSITORY" --clobber
+          else
+            gh release create "$GITHUB_REF_NAME" dist/velar-dns.apk \
+              --repo "$GITHUB_REPOSITORY" \
+              --title "Velar DNS $GITHUB_REF_NAME" \
+              --notes "APK para Android TV, Google TV e TV Box (Android 6 ou mais novo). Baixe **velar-dns.apk** abaixo e instale na TV. Quem já tem o app instalado pode atualizar por cima."
+          fi
