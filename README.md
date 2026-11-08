@@ -9,7 +9,6 @@ Velar DNS blocks known malicious domains before the DNS query is even resolved. 
 List sources (public, free, and community-maintained):
 
 Steven Black — ~170,000 malware and phishing domains
-URLhaus (abuse.ch) — malware distribution
 Phishing Army — confirmed phishing sites
 The lists are automatically downloaded every 24 hours. Protection is enabled by default and can be toggled off on the "Protection" screen.
 
