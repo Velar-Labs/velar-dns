@@ -32,19 +32,16 @@ object BlocklistManager {
     /** Arquivo combinado com todos os domínios. */
     private const val MERGED_FILE = "merged.txt"
 
-    /** Fontes públicas, gratuitas e mantidas pela comunidade. */
+    /**
+     * Fontes públicas, gratuitas e mantidas pela comunidade.
+     * (URLhaus saiu na 1.3.2: o abuse.ch encerrou os downloads sem chave e a URL devolve HTTP 410.)
+     */
     val SOURCES = listOf(
         BlocklistSource(
             id = "stevenblack",
             name = "Steven Black Hosts",
             url = "https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts",
             description = "Malware, phishing e rastreadores (~170 mil domínios)",
-        ),
-        BlocklistSource(
-            id = "urlhaus",
-            name = "URLhaus (abuse.ch)",
-            url = "https://urlhaus.abuse.ch/downloads/hostfile/",
-            description = "Domínios de distribuição de malware",
         ),
         BlocklistSource(
             id = "phishing_army",
@@ -77,6 +74,8 @@ object BlocklistManager {
     fun init(context: Context) {
         appDir = File(context.filesDir, DIR).also { it.mkdirs() }
         loadWhitelist(context)
+        // Sobras da fonte removida (URLhaus): o arquivo não entra mais na lista combinada.
+        File(appDir, "urlhaus.txt").delete()
         // Carrega as listas em cache, se existirem.
         val merged = File(appDir, MERGED_FILE)
         if (merged.exists() && merged.length() > 0) {

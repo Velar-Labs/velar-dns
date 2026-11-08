@@ -73,7 +73,6 @@ O Velar DNS bloqueia domínios conhecidos como maliciosos antes mesmo de resolve
 **Fontes das listas (públicas, gratuitas, atualizadas pela comunidade):**
 
 - **Steven Black** — ~170 mil domínios de malware e phishing
-- **URLhaus (abuse.ch)** — distribuição de malware
 - **Phishing Army** — phishing confirmado
 
 As listas são baixadas automaticamente a cada 24 horas. A proteção vem ativada por padrão e pode ser desligada na tela "Proteção".
@@ -84,7 +83,7 @@ As listas são baixadas automaticamente a cada 24 horas. A proteção vem ativad
 
 **Cache DNS:** respostas ficam em memória pelo tempo de validade (TTL, no máximo 10 min), para abrir sites mais rápido.
 
-**Whitelist:** se um domínio legítimo for bloqueado por engano, você pode adicioná-lo à whitelist na tela de Proteção.
+**Whitelist:** se um domínio legítimo for bloqueado por engano, aperte OK sobre ele em "Bloqueios recentes", na tela Proteção. Os liberados aparecem numa lista, e OK nela volta a bloquear.
 
 ## Como gerar o APK (GitHub Actions)
 
