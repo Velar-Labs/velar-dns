@@ -19,6 +19,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -28,6 +29,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import app.velardns.data.Prefs
+import app.velardns.filter.BlockLog
+import app.velardns.filter.BlocklistManager
 import app.velardns.vpn.VpnStatus
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -130,6 +135,10 @@ private fun InfoGrid(status: VpnStatus.On, latencyMs: Long?) {
     val since = remember(status.sinceMillis) {
         SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(status.sinceMillis))
     }
+    val blockedCount by BlockLog.blockedCount.collectAsStateWithLifecycle()
+    val protectionOn = Prefs.current.protection
+    val domainsLoaded = BlocklistManager.matcher.size
+
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             InfoCard("Servidor", status.provider.name, status.provider.host, Modifier.weight(1f))
@@ -137,7 +146,12 @@ private fun InfoGrid(status: VpnStatus.On, latencyMs: Long?) {
         }
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             InfoCard("Protocolo", "DoH", "HTTPS · porta 443", Modifier.weight(1f))
-            InfoCard("Ativo desde", since, "reconecta sozinho", Modifier.weight(1f))
+            InfoCard(
+                "Proteção",
+                if (protectionOn) "$blockedCount bloqueadas" else "desligada",
+                if (protectionOn && domainsLoaded > 0) "${domainsLoaded / 1000}k domínios" else "ative em Proteção",
+                Modifier.weight(1f),
+            )
         }
     }
 }

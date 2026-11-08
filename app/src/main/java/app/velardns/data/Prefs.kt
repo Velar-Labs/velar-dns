@@ -15,6 +15,8 @@ data class VelarSettings(
     val toast: Boolean = false,
     /** Se a proteção estava ligada quando o usuário saiu — usado ao reiniciar a TV. */
     val wasEnabled: Boolean = false,
+    /** Proteção contra domínios maliciosos (phishing, malware, C&C). */
+    val protection: Boolean = true,
 ) {
     val selectedProvider: DohProvider
         get() = if (providerId == Providers.CUSTOM_ID && Providers.isValidDohUrl(customUrl)) {
@@ -42,6 +44,7 @@ object Prefs {
             forceAll = sp.getBoolean("force_all", true),
             toast = sp.getBoolean("toast", false),
             wasEnabled = sp.getBoolean("was_enabled", false),
+            protection = sp.getBoolean("protection", true),
         )
     }
 
@@ -56,6 +59,7 @@ object Prefs {
             .putBoolean("force_all", next.forceAll)
             .putBoolean("toast", next.toast)
             .putBoolean("was_enabled", next.wasEnabled)
+            .putBoolean("protection", next.protection)
             .apply()
     }
 }

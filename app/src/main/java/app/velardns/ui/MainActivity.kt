@@ -87,10 +87,11 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-enum class Screen(val label: String) { Home("Início"), Servers("Servidores"), Diagnostics("Diagnóstico"), Settings("Ajustes") }
+enum class Screen(val label: String) { Home("Início"), Protection("Proteção"), Servers("Servidores"), Diagnostics("Diagnóstico"), Settings("Ajustes") }
 
 private fun Screen.icon(): ImageVector = when (this) {
     Screen.Home -> VIcons.Home
+    Screen.Protection -> VIcons.Shield
     Screen.Servers -> VIcons.Server
     Screen.Diagnostics -> VIcons.Pulse
     Screen.Settings -> VIcons.Sliders
@@ -122,6 +123,7 @@ fun VelarRoot(onToggle: () -> Unit) {
         ) {
             when (screen) {
                 Screen.Home -> HomeScreen(status, latency, onToggle)
+                Screen.Protection -> ProtectionScreen(settings)
                 Screen.Servers -> ServersScreen(settings, status)
                 Screen.Diagnostics -> DiagnosticsScreen()
                 Screen.Settings -> SettingsScreen(settings)

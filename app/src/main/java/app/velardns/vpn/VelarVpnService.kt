@@ -17,6 +17,7 @@ import app.velardns.R
 import app.velardns.VelarApp
 import app.velardns.data.DohProvider
 import app.velardns.data.Prefs
+import app.velardns.filter.BlockLog
 import app.velardns.dns.FailoverResolver
 import app.velardns.dns.Packets
 import app.velardns.ui.MainActivity
@@ -223,6 +224,11 @@ class VelarVpnService : VpnService() {
     }
 
     private fun stopProtection(userRequested: Boolean) {
+        // Salvar contador de bloqueios antes de parar
+        getSharedPreferences("velar", MODE_PRIVATE)
+            .edit()
+            .putLong("blocked_total", BlockLog.blockedCount.value)
+            .apply()
         closeTunnel()
         VpnState.status.value = VpnStatus.Off
         VpnState.latencyMs.value = null
@@ -261,7 +267,10 @@ class VelarVpnService : VpnService() {
         return NotificationCompat.Builder(this, VelarApp.CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_stat_velar)
             .setContentTitle("Velar DNS ativo")
-            .setContentText("DNS criptografado via ${provider.name}")
+            .setContentText(
+                if (Prefs.current.protection) "DNS criptografado + proteção via ${provider.name}"
+                else "DNS criptografado via ${provider.name}"
+            )
             .setOngoing(true)
             .setContentIntent(open)
             .addAction(0, "Desligar", stop)

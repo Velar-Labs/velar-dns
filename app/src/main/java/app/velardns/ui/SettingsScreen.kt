@@ -112,6 +112,7 @@ fun SettingsScreen(settings: VelarSettings) {
             ) {
                 Column(Modifier.weight(1f)) {
                     Text("Velar DNS ${BuildConfig.VERSION_NAME}", color = VColors.Text, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+                    Text("DNS criptografado + proteção", color = VColors.Lime, fontSize = 10.sp)
                     Text("Desenvolvido por Velar Labs", color = VColors.Muted, fontSize = 10.sp)
                 }
                 LogoMark(22.dp)

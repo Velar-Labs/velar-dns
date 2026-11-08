@@ -17,6 +17,8 @@ import okhttp3.Response
 import java.io.IOException
 import java.net.InetAddress
 import java.util.concurrent.TimeUnit
+import app.velardns.filter.BlockLog
+import app.velardns.filter.BlocklistManager
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.coroutines.resume
@@ -117,6 +119,16 @@ class FailoverResolver(
 
     suspend fun resolve(query: ByteArray): ByteArray {
         val id = DnsMessage.id(query)
+
+        // Proteção: verifica se o domínio está numa lista de ameaças.
+        if (Prefs.current.protection) {
+            val domain = DnsMessage.extractDomain(query)
+            if (domain != null && BlocklistManager.shouldBlock(domain)) {
+                BlockLog.record(domain)
+                return DnsMessage.withId(DnsMessage.blocked(query), id)
+            }
+        }
+
         val first = current
         return try {
             val start = SystemClock.elapsedRealtime()

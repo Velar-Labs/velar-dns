@@ -88,4 +88,8 @@ object VIcons {
     val Alert = stroke("alert", "M12 7v6M12 17h.01")
     val Refresh = stroke("refresh", "M20 11a8 8 0 1 0-2.3 5.7", "M20 4v7h-7")
     val Chevron = stroke("chevron", "M9 5l7 7-7 7")
+    val Shield = stroke("shield", "M12 3l8 4v5c0 5.5-3.8 10.7-8 12-4.2-1.3-8-6.5-8-12V7z")
+    val ShieldCheck = stroke("shieldCheck", "M12 3l8 4v5c0 5.5-3.8 10.7-8 12-4.2-1.3-8-6.5-8-12V7z", "M9 12l2 2 4-4")
+    val Ban = stroke("ban", "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z", "M5.6 5.6l12.8 12.8")
+    val List = stroke("list", "M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01")
 }

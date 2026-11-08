@@ -77,6 +77,65 @@ object DnsMessage {
         return base
     }
 
+    /**
+     * Extrai o nome de domínio da seção de perguntas de uma mensagem DNS.
+     * Retorna null se a mensagem estiver malformada.
+     */
+    fun extractDomain(msg: ByteArray): String? {
+        if (msg.size < 13) return null
+        val parts = mutableListOf<String>()
+        var p = 12
+        while (p < msg.size) {
+            val len = msg[p].toInt() and 0xFF
+            if (len == 0) break
+            if (len and 0xC0 == 0xC0) break  // ponteiro de compressão — não esperado na query
+            p++
+            if (p + len > msg.size) return null
+            parts.add(String(msg, p, len, Charsets.US_ASCII))
+            p += len
+        }
+        return if (parts.isEmpty()) null else parts.joinToString(".")
+    }
+
+    /**
+     * Monta uma resposta DNS com o IP 0.0.0.0 (NXDOMAIN efetivo).
+     * Usada para bloquear domínios maliciosos sem sair da rede.
+     */
+    fun blocked(query: ByteArray): ByteArray {
+        val end = questionEnd(query)
+        if (end < 0) return servFail(query)
+        val out = java.io.ByteArrayOutputStream(end + 16)
+        // Header: copia ID, define QR=1, RA=1, RCODE=0 (NOERROR), ANCOUNT=1
+        out.write(query[0].toInt() and 0xFF)
+        out.write(query[1].toInt() and 0xFF)
+        val rd = query[2].toInt() and 0x01
+        out.write(0x80 or rd) // QR=1, mantém RD
+        out.write(0x80)       // RA=1, RCODE=0
+        // QDCOUNT = original
+        out.write(query[4].toInt() and 0xFF)
+        out.write(query[5].toInt() and 0xFF)
+        // ANCOUNT = 1
+        out.write(0x00); out.write(0x01)
+        // NS = 0, AR = 0
+        out.write(0x00); out.write(0x00)
+        out.write(0x00); out.write(0x00)
+        // Seção de perguntas (cópia integral)
+        out.write(query, 12, end - 12)
+        // Resposta: ponteiro para o nome na pergunta (offset 12)
+        out.write(0xC0); out.write(0x0C)
+        // TYPE A
+        out.write(0x00); out.write(0x01)
+        // CLASS IN
+        out.write(0x00); out.write(0x01)
+        // TTL = 60 segundos
+        out.write(0x00); out.write(0x00); out.write(0x00); out.write(0x3C)
+        // RDLENGTH = 4
+        out.write(0x00); out.write(0x04)
+        // RDATA = 0.0.0.0
+        out.write(0x00); out.write(0x00); out.write(0x00); out.write(0x00)
+        return out.toByteArray()
+    }
+
     /** Endereços IPv4 (registros A) da seção de respostas. */
     fun parseA(msg: ByteArray): List<String> {
         val result = mutableListOf<String>()
