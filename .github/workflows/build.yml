@@ -27,13 +27,25 @@ jobs:
       - name: Preparar chave de assinatura (opcional)
         if: env.KEYSTORE_B64 != ''
         run: |
-          echo "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/velar.jks"
+          printf '%s' "$KEYSTORE_B64" | tr -d '[:space:]' | base64 -d > "$RUNNER_TEMP/velar.jks" || {
+            echo "::error::VELAR_KEYSTORE_BASE64 inválido: cole o conteúdo inteiro do arquivo velar.jks.b64."; exit 1; }
+          PASS="$(printf '%s' "$VELAR_KEYSTORE_PASSWORD" | tr -d '[:space:]')"
+          if ! keytool -list -keystore "$RUNNER_TEMP/velar.jks" -storepass "$PASS" > /dev/null 2>&1; then
+            echo "::error::A senha em VELAR_KEYSTORE_PASSWORD não abre a chave. Recadastre esse secret copiando a senha do SECRETS-GITHUB.txt."
+            exit 1
+          fi
+          echo "Chave de assinatura conferida."
           echo "VELAR_KEYSTORE_PATH=$RUNNER_TEMP/velar.jks" >> "$GITHUB_ENV"
 
       - name: Compilar APK
         run: |
           chmod +x gradlew
           ./gradlew assembleRelease --no-daemon --stacktrace
+
+      - name: Conferir assinatura do APK
+        run: |
+          APKSIGNER=$(ls "$ANDROID_HOME"/build-tools/*/apksigner | sort -V | tail -1)
+          "$APKSIGNER" verify --print-certs app/build/outputs/apk/release/*.apk | grep -E "Signer #1 certificate (DN|SHA-256)"
 
       - name: Renomear APK
         run: |

@@ -24,10 +24,12 @@ android {
     signingConfigs {
         if (releaseKeystore != null) {
             create("release") {
+                // trim(): ignora espaços ou quebras de linha coladas junto nos secrets.
+                val storePass = System.getenv("VELAR_KEYSTORE_PASSWORD")?.trim().orEmpty()
                 storeFile = file(releaseKeystore)
-                storePassword = System.getenv("VELAR_KEYSTORE_PASSWORD")
-                keyAlias = System.getenv("VELAR_KEY_ALIAS")
-                keyPassword = System.getenv("VELAR_KEY_PASSWORD")
+                storePassword = storePass
+                keyAlias = System.getenv("VELAR_KEY_ALIAS")?.trim()?.ifEmpty { null } ?: "velar"
+                keyPassword = System.getenv("VELAR_KEY_PASSWORD")?.trim()?.ifEmpty { null } ?: storePass
             }
         }
     }
