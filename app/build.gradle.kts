@@ -29,7 +29,8 @@ android {
                 storeFile = file(releaseKeystore)
                 storePassword = storePass
                 keyAlias = System.getenv("VELAR_KEY_ALIAS")?.trim()?.ifEmpty { null } ?: "velar"
-                keyPassword = System.getenv("VELAR_KEY_PASSWORD")?.trim()?.ifEmpty { null } ?: storePass
+                // Chave PKCS12: a senha da chave é a mesma do keystore.
+                keyPassword = storePass
             }
         }
     }
