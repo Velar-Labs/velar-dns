@@ -53,9 +53,22 @@ jobs:
           ./gradlew assembleRelease --no-daemon --stacktrace
 
       - name: Conferir assinatura do APK
+        if: env.VELAR_KEYSTORE_PATH != ''
         run: |
-          APKSIGNER=$(ls "$ANDROID_HOME"/build-tools/*/apksigner | sort -V | tail -1)
-          "$APKSIGNER" verify --print-certs app/build/outputs/apk/release/*.apk | grep -E "Signer #1 certificate (DN|SHA-256)"
+          APK=$(ls app/build/outputs/apk/release/*.apk | head -1)
+          # Impressão digital pública do certificado Velar DNS (SHA-256).
+          EXPECTED="1e72283cfd1138b4131b80222757768928755065dafb962918c34abe263c769c"
+          ACTUAL=$(unzip -p "$APK" 'META-INF/*.RSA' 2>/dev/null | keytool -printcert 2>/dev/null | grep -i "SHA256:" | head -1 | sed 's/.*SHA256: *//; s/://g' | tr 'A-F' 'a-f')
+          if [ -z "$ACTUAL" ]; then
+            APKSIGNER=$(ls "$ANDROID_HOME"/build-tools/*/apksigner 2>/dev/null | sort -V | tail -1)
+            ACTUAL=$("$APKSIGNER" verify --print-certs "$APK" 2>&1 | grep -i "SHA-256 digest" | head -1 | sed 's/.*: *//')
+          fi
+          echo "Certificado do APK: ${ACTUAL:-não encontrado}"
+          if [ "$ACTUAL" != "$EXPECTED" ]; then
+            echo "::error::O APK não saiu assinado com a chave do Velar DNS."
+            exit 1
+          fi
+          echo "APK assinado com a chave do Velar DNS."
 
       - name: Renomear APK
         run: |
