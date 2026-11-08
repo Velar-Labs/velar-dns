@@ -13,6 +13,8 @@ jobs:
       VELAR_KEYSTORE_PASSWORD: ${{ secrets.VELAR_KEYSTORE_PASSWORD }}
       VELAR_KEY_ALIAS: ${{ secrets.VELAR_KEY_ALIAS }}
       VELAR_KEY_PASSWORD: ${{ secrets.VELAR_KEY_PASSWORD }}
+      # Impressão digital do arquivo velar.jks (não é segredo): confirma que a chave chegou inteira.
+      EXPECTED_JKS_SHA256: 4b49e1b3cee44e1dd9742ef8bd9e372854d4ca94cdae4f194b2075c739c8ddb7
 
     steps:
       - uses: actions/checkout@v5
@@ -29,7 +31,15 @@ jobs:
         run: |
           printf '%s' "$KEYSTORE_B64" | tr -d '[:space:]' | base64 -d > "$RUNNER_TEMP/velar.jks" || {
             echo "::error::VELAR_KEYSTORE_BASE64 inválido: cole o conteúdo inteiro do arquivo velar.jks.b64."; exit 1; }
+          B64_LEN=$(printf '%s' "$KEYSTORE_B64" | tr -d '[:space:]' | wc -c)
+          JKS_SHA=$(sha256sum "$RUNNER_TEMP/velar.jks" | cut -d' ' -f1)
+          if [ "$JKS_SHA" != "$EXPECTED_JKS_SHA256" ]; then
+            echo "::error::VELAR_KEYSTORE_BASE64 chegou diferente do arquivo velar.jks.b64 ($B64_LEN de 3508 caracteres). Recadastre colando o conteúdo inteiro."
+            exit 1
+          fi
+          echo "Arquivo da chave confere ($B64_LEN caracteres)."
           PASS="$(printf '%s' "$VELAR_KEYSTORE_PASSWORD" | tr -d '[:space:]')"
+          echo "Senha recebida com ${#PASS} caracteres (esperado: 24)."
           if ! keytool -list -keystore "$RUNNER_TEMP/velar.jks" -storepass "$PASS" > /dev/null 2>&1; then
             echo "::error::A senha em VELAR_KEYSTORE_PASSWORD não abre a chave. Recadastre esse secret copiando a senha do SECRETS-GITHUB.txt."
             exit 1
