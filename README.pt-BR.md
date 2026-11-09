@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/assets/header-pt.png" alt="Velar DNS — DNS criptografado + proteção contra ameaças para Android TV" width="100%">
+  <img src="docs/assets/cover.png" alt="Velar DNS — DNS criptografado e proteção contra ameaças para Android TV" width="100%">
 </p>
 
 <p align="center">
@@ -23,6 +23,23 @@ Só as consultas DNS passam pelo app. Vídeo, downloads e todo o resto seguem di
 <p align="center">
   <a href="https://github.com/Velar-Labs/velar-dns/releases/latest/download/velar-dns.apk"><img src="https://img.shields.io/badge/Baixar%20APK-mais%20recente-C8F542?style=for-the-badge&labelColor=0A0A0B&logo=android&logoColor=white" alt="Baixar o APK mais recente"></a>
 </p>
+
+## Telas
+
+<p align="center">
+  <img src="docs/assets/screens/inicio.png" alt="Início — proteção ativa" width="100%">
+</p>
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/assets/screens/protecao.png" alt="Proteção — bloqueio de domínios maliciosos"><p align="center"><sub>Proteção — bloqueio de domínios maliciosos</sub></p></td>
+    <td width="50%"><img src="docs/assets/screens/servidores.png" alt="Servidores DoH"><p align="center"><sub>Servidores DoH</sub></p></td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="docs/assets/screens/diagnostico.png" alt="Diagnóstico"><p align="center"><sub>Diagnóstico</sub></p></td>
+    <td width="50%"><img src="docs/assets/screens/ajustes.png" alt="Ajustes"><p align="center"><sub>Ajustes</sub></p></td>
+  </tr>
+</table>
 
 ## Recursos
 
@@ -87,7 +104,6 @@ O app se conecta a cada servidor DoH pelos IPs fixos dele, então não depende (
 - Só as consultas DNS entram no túnel. O restante do seu tráfego nunca passa pelo app.
 - Listas de bloqueio, estatísticas e domínios liberados ficam **só no aparelho**. Seu histórico de DNS não é enviado a lugar nenhum.
 - As listas de proteção são baixadas das fontes públicas (GitHub e phishing.army).
-- **Contador anônimo de instalações (desde 1.2.0):** cada instalação gera um código aleatório. Com a proteção ligada, o app envia esse código e a versão do app ao nosso servidor a cada 30 minutos, para sabermos quantos aparelhos estão ativos. **Não** envia nome, conta, sites visitados nem consultas DNS. Veja [`stats/DeviceCounter.kt`](app/src/main/java/app/velardns/stats/DeviceCounter.kt).
 
 ## Bom saber
 

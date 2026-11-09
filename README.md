@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/assets/header.png" alt="Velar DNS — Encrypted DNS + threat protection for Android TV" width="100%">
+  <img src="docs/assets/cover.png" alt="Velar DNS — Encrypted DNS and threat protection for Android TV" width="100%">
 </p>
 
 <p align="center">
@@ -23,6 +23,23 @@ Only DNS queries go through the app. Your video, downloads and everything else k
 <p align="center">
   <a href="https://github.com/Velar-Labs/velar-dns/releases/latest/download/velar-dns.apk"><img src="https://img.shields.io/badge/Download%20APK-latest-C8F542?style=for-the-badge&labelColor=0A0A0B&logo=android&logoColor=white" alt="Download the latest APK"></a>
 </p>
+
+## Screenshots
+
+<p align="center">
+  <img src="docs/assets/screens/inicio.png" alt="Home — protection on" width="100%">
+</p>
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/assets/screens/protecao.png" alt="Protection — malicious-domain blocking"><p align="center"><sub>Protection — malicious-domain blocking</sub></p></td>
+    <td width="50%"><img src="docs/assets/screens/servidores.png" alt="DoH servers"><p align="center"><sub>DoH servers</sub></p></td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="docs/assets/screens/diagnostico.png" alt="Diagnostics"><p align="center"><sub>Diagnostics</sub></p></td>
+    <td width="50%"><img src="docs/assets/screens/ajustes.png" alt="Settings"><p align="center"><sub>Settings</sub></p></td>
+  </tr>
+</table>
 
 ## Features
 
@@ -89,7 +106,6 @@ The app connects to each DoH server through its fixed IP addresses, so it does n
 - Only DNS queries enter the tunnel. The rest of your traffic is never seen by the app.
 - Blocklists, statistics and your allowlist live **only on the device**. Your DNS history is never sent anywhere.
 - Protection lists are downloaded from their public sources (GitHub and phishing.army).
-- **Anonymous install counter (since 1.2.0):** each install creates a random ID. While protection is on, the app sends that ID and the app version to our server every 30 minutes, so we know how many devices are active. It does **not** send your name, account, websites visited or DNS queries. See [`stats/DeviceCounter.kt`](app/src/main/java/app/velardns/stats/DeviceCounter.kt).
 
 ## Good to know
 

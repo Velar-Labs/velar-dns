@@ -48,7 +48,3 @@ E cadastre em **Settings → Secrets and variables → Actions**:
 Guarde o `velar.jks` e as senhas em lugar seguro: **perdeu a chave, não dá mais para atualizar o app instalado.**
 
 O workflow confere a impressão digital do arquivo da chave e do certificado do APK antes de publicar. Se trocar a chave, atualize `EXPECTED_JKS_SHA256` e `EXPECTED` em `.github/workflows/build.yml`.
-
-## Contador de aparelhos
-
-`stats/DeviceCounter.kt` envia um código aleatório e a versão do app ao projeto Supabase `velar-dns` a cada 30 min, com a proteção ligada. Totais: função `stats()` nesse projeto.
