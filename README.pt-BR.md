@@ -103,7 +103,8 @@ O app se conecta a cada servidor DoH pelos IPs fixos dele, então não depende (
 
 - Só as consultas DNS entram no túnel. O restante do seu tráfego nunca passa pelo app.
 - Listas de bloqueio, estatísticas e domínios liberados ficam **só no aparelho**. Seu histórico de DNS não é enviado a lugar nenhum.
-- As listas de proteção são baixadas das fontes públicas (GitHub e phishing.army).
+- As listas de proteção são baixadas das fontes públicas (GitHub, phishing.army e, se você ligar, adguardteam.github.io).
+- Aviso de versão nova: o app consulta a página pública de Releases do GitHub no máximo a cada 12 horas. Nada que identifique o aparelho é enviado. Dá para desligar em *Ajustes*.
 
 ## Bom saber
 

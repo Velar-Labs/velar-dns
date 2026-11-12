@@ -22,5 +22,8 @@ object VpnState {
         latencyMs.value = if (prev == null) ms else (prev * 4 + ms) / 5
     }
 
+    /** Consultas DNS recebidas pelo túnel desde que o app abriu. */
+    val queryCount = java.util.concurrent.atomic.AtomicLong(0)
+
     val isOn: Boolean get() = status.value is VpnStatus.On
 }

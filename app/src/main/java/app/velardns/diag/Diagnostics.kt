@@ -25,6 +25,7 @@ object Diagnostics {
         Check("DNS padrão da rede", "Verificando…", CheckStatus.RUNNING, "…"),
         Check("Servidor DoH alcançável", "Verificando…", CheckStatus.RUNNING, "…"),
         Check("Velar DNS no aparelho", "Verificando…", CheckStatus.RUNNING, "…"),
+        Check("Possíveis vazamentos de DNS", "Verificando…", CheckStatus.RUNNING, "…"),
     )
 
     /** A rede física (Wi-Fi/cabo), ignorando a própria VPN. */
@@ -77,17 +78,57 @@ object Diagnostics {
             Check("Velar DNS no aparelho", "A proteção está desligada", CheckStatus.WARN, "Desligado")
         }
 
-        val checks = listOf(internet, systemDns, doh, active)
+        val leak = leakCheck(context)
+        val checks = listOf(internet, systemDns, doh, active, leak)
         val (headline, summary, good) = when {
             internet.status == CheckStatus.FAIL ->
                 Triple("Sem internet", "Conecte a TV ao Wi-Fi ou cabo e teste de novo.", false)
             doh.status == CheckStatus.FAIL ->
                 Triple("Servidor indisponível", "O servidor escolhido não respondeu. Escolha outro em Servidores ou deixe a troca automática ligada.", false)
+            active.status == CheckStatus.OK && leak.status != CheckStatus.OK ->
+                Triple("Atenção: possível vazamento", leak.detail, false)
             active.status != CheckStatus.OK ->
                 Triple("Proteção desligada", "Tudo pronto para ativar. Volte ao Início e pressione OK.", false)
             else ->
                 Triple("Conexão protegida", "Suas consultas vão criptografadas direto para o servidor escolhido, sem depender do DNS padrão da rede.", true)
         }
         DiagnosticResult(checks, headline, summary, good)
+    }
+
+    /**
+     * Procura motivos pelos quais consultas DNS poderiam escapar do túnel.
+     * O próprio app fica fora da VPN, então não dá para "mandar uma consulta de teste":
+     * o que se verifica é a configuração do Android e se o túnel está recebendo consultas.
+     */
+    private fun leakCheck(context: Context): Check {
+        val title = "Possíveis vazamentos de DNS"
+        if (!VpnState.isOn) return Check(title, "Ligue a proteção para testar", CheckStatus.WARN, "—")
+        val mode = runCatching {
+            android.provider.Settings.Global.getString(context.contentResolver, "private_dns_mode")
+        }.getOrNull()
+        if (mode == "hostname") {
+            return Check(
+                title,
+                "DNS privado está em modo fixo no Android: pode ignorar o Velar DNS. Desligue em Rede e internet.",
+                CheckStatus.WARN, "DNS privado",
+            )
+        }
+        val since = (VpnState.status.value as? app.velardns.vpn.VpnStatus.On)?.sinceMillis ?: System.currentTimeMillis()
+        val minutes = (System.currentTimeMillis() - since) / 60_000
+        if (VpnState.queryCount.get() == 0L && minutes >= 2) {
+            return Check(
+                title,
+                "Nenhuma consulta chegou ao túnel em $minutes min. Outro app de VPN ou o DNS privado pode estar desviando o DNS.",
+                CheckStatus.WARN, "Sem consultas",
+            )
+        }
+        if (!Prefs.current.forceAll) {
+            return Check(
+                title,
+                "\"Forçar todo DNS\" está desligado: apps com DNS próprio (ex.: 8.8.8.8) não são cobertos.",
+                CheckStatus.WARN, "Parcial",
+            )
+        }
+        return Check(title, "${VpnState.queryCount.get()} consultas tratadas; nenhuma configuração desviando o DNS", CheckStatus.OK, "OK")
     }
 }

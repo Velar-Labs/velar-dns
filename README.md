@@ -52,9 +52,9 @@ Only DNS queries go through the app. Your video, downloads and everything else k
 | ⚡ **DNS cache** | Answers are kept in memory for their TTL (max. 10 min), so pages and apps open faster. |
 | 📊 **Stats on the device** | Blocks from the last 7 days and the most blocked domains — stored only on the TV. |
 | ✅ **One-click allowlist** | Something legitimate got blocked? Press **OK** on it in *Recent blocks* to allow it. Press OK again to block it back. |
-| 🩺 **Diagnostics** | One screen that tests the network, the DoH servers and the protection lists. |
+| 🩺 **Diagnostics** | One screen that tests the network, the DoH servers and the protection lists, and warns about possible DNS leaks (Private DNS, other VPNs). |
 | 📺 **Made for the remote** | Jetpack Compose UI designed for D-pad navigation. Starts with the TV and supports Android's *Always-on VPN*. |
-| 🔄 **Auto-updated lists** | Protection lists refresh every 24 hours in the background. |
+| 🔄 **Auto-updated lists** | Protection lists refresh every 24 hours in the background. Optional ad and tracker list. |
 
 ## How it works
 
@@ -105,7 +105,8 @@ The app connects to each DoH server through its fixed IP addresses, so it does n
 
 - Only DNS queries enter the tunnel. The rest of your traffic is never seen by the app.
 - Blocklists, statistics and your allowlist live **only on the device**. Your DNS history is never sent anywhere.
-- Protection lists are downloaded from their public sources (GitHub and phishing.army).
+- Protection lists are downloaded from their public sources (GitHub, phishing.army and, if you turn it on, adguardteam.github.io).
+- Update notice: the app asks GitHub's public Releases page for the latest version at most every 12 hours. Nothing identifying is sent. You can turn it off in *Settings*.
 
 ## Good to know
 

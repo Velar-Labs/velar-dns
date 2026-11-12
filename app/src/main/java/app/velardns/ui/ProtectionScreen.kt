@@ -193,7 +193,7 @@ fun ProtectionScreen(settings: VelarSettings) {
             // Fontes
             Spacer(Modifier.height(4.dp))
             Text("Fontes", color = VColors.Muted, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
-            BlocklistManager.SOURCES.forEach { source ->
+            BlocklistManager.activeSources().forEach { source ->
                 val failure = sourceStatus[source.id]
                 Row(
                     Modifier
@@ -214,6 +214,33 @@ fun ProtectionScreen(settings: VelarSettings) {
                     }
                     if (failure != null) VIcon(VIcons.Ban, VColors.Coral, 16.dp)
                     else VIcon(VIcons.ShieldCheck, VColors.Lime, 16.dp)
+                }
+            }
+
+            // Lista extra de anúncios e rastreadores
+            val settingsNow by Prefs.state.collectAsStateWithLifecycle()
+            Focusable(
+                onClick = {
+                    Prefs.update { it.copy(blockAds = !it.blockAds) }
+                    scope.launch {
+                        runCatching {
+                            BlocklistManager.update()
+                            BlocklistManager.saveLastUpdate(context)
+                        }
+                    }
+                    Toast.makeText(context, "Atualizando as listas…", Toast.LENGTH_SHORT).show()
+                },
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Row(
+                    Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Column(Modifier.weight(1f)) {
+                        Text("Bloquear também anúncios e rastreadores", color = VColors.Text, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                        Text("Adiciona a lista AdGuard DNS filter. Pode bloquear algo que você usa: libere em Bloqueios recentes.", color = VColors.Muted, fontSize = 10.sp)
+                    }
+                    SwitchPill(settingsNow.blockAds)
                 }
             }
 

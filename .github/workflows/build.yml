@@ -73,6 +73,11 @@ jobs:
           echo "Chave de assinatura conferida."
           echo "VELAR_KEYSTORE_PATH=$RUNNER_TEMP/velar.jks" >> "$GITHUB_ENV"
 
+      - name: Rodar testes
+        run: |
+          chmod +x gradlew
+          ./gradlew testReleaseUnitTest --no-daemon --stacktrace
+
       - name: Compilar APK
         run: |
           chmod +x gradlew

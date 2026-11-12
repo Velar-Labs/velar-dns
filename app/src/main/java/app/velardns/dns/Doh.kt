@@ -41,7 +41,11 @@ object Doh {
     val client: OkHttpClient = OkHttpClient.Builder()
         .dns(object : Dns {
             override fun lookup(hostname: String): List<InetAddress> =
-                bootstrap[hostname] ?: Dns.SYSTEM.lookup(hostname)
+                bootstrap[hostname]?.let { fixed ->
+                    // IPs fixos primeiro; se o provedor trocar de IP, o DNS da rede serve de reserva.
+                    fixed + runCatching { Dns.SYSTEM.lookup(hostname) }.getOrDefault(emptyList())
+                        .filter { it !in fixed }
+                } ?: Dns.SYSTEM.lookup(hostname)
         })
         .protocols(listOf(Protocol.HTTP_2, Protocol.HTTP_1_1))
         .connectTimeout(4, TimeUnit.SECONDS)

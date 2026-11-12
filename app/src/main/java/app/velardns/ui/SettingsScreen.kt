@@ -71,6 +71,12 @@ fun SettingsScreen(settings: VelarSettings) {
             }
 
             ToggleRow(
+                title = "Avisar quando houver versão nova",
+                detail = "Consulta a página de Releases do GitHub no máximo a cada 12 h. Não instala nada sozinho",
+                on = settings.checkUpdates,
+            ) { Prefs.update { it.copy(checkUpdates = !it.checkUpdates) } }
+
+            ToggleRow(
                 title = "Aviso na tela ao ligar e desligar",
                 detail = "Mostra um aviso rápido quando a proteção muda de estado",
                 on = settings.toast,

@@ -2,6 +2,8 @@ package app.velardns.filter
 
 import android.content.Context
 import android.util.Log
+import app.velardns.BuildConfig
+import app.velardns.data.Prefs
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -49,7 +51,18 @@ object BlocklistManager {
             url = "https://phishing.army/download/phishing_army_blocklist.txt",
             description = "Domínios de phishing confirmados",
         ),
+        BlocklistSource(
+            id = "adguard_dns",
+            name = "AdGuard DNS filter",
+            url = "https://adguardteam.github.io/AdGuardSDNSFilter/Filters/filter.txt",
+            description = "Anúncios e rastreadores (opcional, ligue na tela Proteção)",
+            optional = true,
+        ),
     )
+
+    /** Fontes em uso: as obrigatórias, mais as opcionais que o usuário ligou. */
+    fun activeSources(): List<BlocklistSource> =
+        SOURCES.filter { !it.optional || Prefs.current.blockAds }
 
     val matcher = DomainMatcher()
 
@@ -107,7 +120,8 @@ object BlocklistManager {
         val downloaded = mutableListOf<File>()
         val status = mutableMapOf<String, String?>()
 
-        for (source in SOURCES) {
+        val active = activeSources()
+        for (source in active) {
             try {
                 val file = downloadList(source)
                 downloaded.add(file)
@@ -142,8 +156,8 @@ object BlocklistManager {
 
         UpdateResult(
             totalDomains = matcher.size,
-            sourcesOk = SOURCES.size - errors.size,
-            sourcesTotal = SOURCES.size,
+            sourcesOk = active.size - errors.size,
+            sourcesTotal = active.size,
             errors = errors,
         )
     }
@@ -151,7 +165,7 @@ object BlocklistManager {
     private fun downloadList(source: BlocklistSource): File {
         val request = Request.Builder()
             .url(source.url)
-            .header("User-Agent", "VelarDNS/1.3.1 (Android TV)")
+            .header("User-Agent", "VelarDNS/${BuildConfig.VERSION_NAME} (Android TV)")
             .build()
         val file = File(appDir, "${source.id}.txt")
         val tmp = File(appDir, "${source.id}.tmp")
@@ -222,6 +236,7 @@ data class BlocklistSource(
     val name: String,
     val url: String,
     val description: String,
+    val optional: Boolean = false,
 )
 
 data class UpdateResult(

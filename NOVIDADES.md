@@ -1,7 +1,10 @@
-Velar DNS 1.3.2 — por Velar Labs.
+Velar DNS 1.4.0 — por Velar Labs.
 
-- Liberar sites bloqueados: na tela Proteção, aperte OK num domínio de "Bloqueios recentes" para liberá-lo. Os liberados aparecem numa lista própria, e OK nela volta a bloquear.
-- Fonte URLhaus removida: o abuse.ch encerrou o download gratuito dessa lista, e ela passava a acusar falha em toda atualização. Continuam Steven Black e Phishing Army.
-- Inclui tudo da 1.3.1 e da 1.3.0: cache DNS, bloqueio também pelo IPv6, estatísticas e aviso de qual lista falhou.
+- Diagnóstico de vazamentos: novo teste que avisa se o DNS privado do Android, outro app de VPN ou a opção "Forçar todo DNS" desligada podem estar desviando consultas.
+- Aviso quando a proteção não religa sozinha depois de reiniciar a TV, em vez de ficar desligada em silêncio.
+- Aviso de versão nova (consulta o GitHub no máximo a cada 12 h; dá para desligar em Ajustes).
+- Lista opcional de anúncios e rastreadores (AdGuard DNS filter), na tela Proteção.
+- Conexão com o servidor DoH mais resistente: se o IP fixo de um provedor mudar, usa o DNS da rede como reserva.
+- Testes automáticos do bloqueio, do cache DNS e dos pacotes, rodando a cada build.
 
 **Como instalar:** baixe `velar-dns.apk` abaixo e instale na TV. Quem já tem o app pode atualizar por cima.
