@@ -33,5 +33,6 @@ class VelarApp : Application() {
         // Proteção: agenda atualização a cada 24h e baixa se necessário.
         BlocklistUpdater.schedule(this)
         BlocklistUpdater.updateIfNeeded(this)
+        app.velardns.data.UpdateChecker.checkIfDue(this)
     }
 }

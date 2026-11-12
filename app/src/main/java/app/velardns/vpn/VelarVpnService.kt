@@ -194,6 +194,7 @@ class VelarVpnService : VpnService() {
                 if (n < 0) break
                 if (n == 0) continue
                 val query = Packets.parseDnsQuery(buffer, n) ?: continue
+                VpnState.queryCount.incrementAndGet()
                 scope.launch {
                     limiter.withPermit {
                         val answer = r.resolve(query.payload)

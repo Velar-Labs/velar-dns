@@ -53,9 +53,19 @@ class DomainMatcher {
      * - `127.0.0.1 dominio.com`
      * Ignora comentários (#) e linhas vazias.
      */
-    private fun parseLine(line: String): String? {
+    internal fun parseLine(line: String): String? {
         val trimmed = line.trim()
         if (trimmed.isEmpty() || trimmed.startsWith('#') || trimmed.startsWith('!')) return null
+        // Exceções ("@@...") e regras com curinga/caminho não viram domínio.
+        if (trimmed.startsWith("@@") || trimmed.startsWith('/')) return null
+        // Sintaxe de filtro de anúncios: ||dominio.com^ (opcionalmente com $opções).
+        if (trimmed.startsWith("||")) {
+            val rule = trimmed.removePrefix("||").substringBefore('$')
+            if (!rule.endsWith('^')) return null
+            val d = rule.removeSuffix("^").lowercase().removePrefix("www.")
+            if (d.isEmpty() || d.any { it == '*' || it == '/' || it == '^' || it == ':' } || !d.contains('.')) return null
+            return d
+        }
         // Remove comentário inline
         val noComment = trimmed.substringBefore('#').substringBefore('!').trim()
         if (noComment.isEmpty()) return null

@@ -22,6 +22,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
+import kotlinx.coroutines.delay
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -104,6 +107,13 @@ fun VelarRoot(onToggle: () -> Unit) {
     val latency by VpnState.latencyMs.collectAsStateWithLifecycle()
     val settings by Prefs.state.collectAsStateWithLifecycle()
     val activity = LocalContext.current as? Activity
+    val newVersion by app.velardns.data.UpdateChecker.available.collectAsStateWithLifecycle()
+
+    // Se a proteção estava ligada e continua desligada alguns segundos depois de abrir o app,
+    // o Android/firmware não religou sozinho: avisa em vez de deixar a TV sem proteção em silêncio.
+    var waited by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) { delay(8_000); waited = true }
+    val notRestarted = waited && status is VpnStatus.Off && settings.wasEnabled
 
     BackHandler {
         if (screen != Screen.Home) screen = Screen.Home else activity?.moveTaskToBack(true)
@@ -121,14 +131,46 @@ fun VelarRoot(onToggle: () -> Unit) {
                 .fillMaxHeight()
                 .padding(horizontal = 48.dp, vertical = 32.dp),
         ) {
-            when (screen) {
-                Screen.Home -> HomeScreen(status, latency, onToggle)
-                Screen.Protection -> ProtectionScreen(settings)
-                Screen.Servers -> ServersScreen(settings, status)
-                Screen.Diagnostics -> DiagnosticsScreen()
-                Screen.Settings -> SettingsScreen(settings)
+            Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                if (notRestarted) {
+                    Banner("A proteção não religou sozinha depois de reiniciar. Vá em Início e pressione OK para ativar.", warn = true)
+                }
+                if (newVersion != null && settings.checkUpdates) {
+                    Banner("Versão $newVersion disponível. Baixe em github.com/Velar-Labs/velar-dns/releases e instale por cima.", warn = false)
+                }
+                Box(Modifier.weight(1f).fillMaxWidth()) { ScreenContent(screen, status, latency, settings, onToggle) }
             }
         }
+    }
+}
+
+@Composable
+private fun Banner(text: String, warn: Boolean) {
+    Text(
+        text,
+        color = if (warn) VColors.CoralText else VColors.Lime,
+        fontSize = 11.sp,
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(if (warn) VColors.CoralTint else VColors.LimeTint, androidx.compose.foundation.shape.RoundedCornerShape(8.dp))
+            .padding(horizontal = 14.dp, vertical = 8.dp),
+    )
+}
+
+@Composable
+private fun ScreenContent(
+    screen: Screen,
+    status: VpnStatus,
+    latency: Long?,
+    settings: app.velardns.data.VelarSettings,
+    onToggle: () -> Unit,
+) {
+    when (screen) {
+        Screen.Home -> HomeScreen(status, latency, onToggle)
+        Screen.Protection -> ProtectionScreen(settings)
+        Screen.Servers -> ServersScreen(settings, status)
+        Screen.Diagnostics -> DiagnosticsScreen()
+        Screen.Settings -> SettingsScreen(settings)
     }
 }
 

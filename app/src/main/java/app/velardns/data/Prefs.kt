@@ -17,6 +17,10 @@ data class VelarSettings(
     val wasEnabled: Boolean = false,
     /** Proteção contra domínios maliciosos (phishing, malware, C&C). */
     val protection: Boolean = true,
+    /** Lista extra de anúncios e rastreadores (AdGuard DNS filter). */
+    val blockAds: Boolean = false,
+    /** Avisa quando há versão nova no GitHub (uma consulta a cada ~12 h). */
+    val checkUpdates: Boolean = true,
 ) {
     val selectedProvider: DohProvider
         get() = if (providerId == Providers.CUSTOM_ID && Providers.isValidDohUrl(customUrl)) {
@@ -45,6 +49,8 @@ object Prefs {
             toast = sp.getBoolean("toast", false),
             wasEnabled = sp.getBoolean("was_enabled", false),
             protection = sp.getBoolean("protection", true),
+            blockAds = sp.getBoolean("block_ads", false),
+            checkUpdates = sp.getBoolean("check_updates", true),
         )
     }
 
@@ -60,6 +66,8 @@ object Prefs {
             .putBoolean("toast", next.toast)
             .putBoolean("was_enabled", next.wasEnabled)
             .putBoolean("protection", next.protection)
+            .putBoolean("block_ads", next.blockAds)
+            .putBoolean("check_updates", next.checkUpdates)
             .apply()
     }
 }
