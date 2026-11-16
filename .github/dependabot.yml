@@ -1,0 +1,14 @@
+# Avisa (com um pull request) quando sair atualização de segurança ou versão nova
+# das bibliotecas do app e das ações do GitHub Actions. Nada entra sem aprovação.
+version: 2
+updates:
+  - package-ecosystem: "gradle"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5

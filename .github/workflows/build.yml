@@ -24,14 +24,14 @@ jobs:
       EXPECTED_JKS_SHA256: 4b49e1b3cee44e1dd9742ef8bd9e372854d4ca94cdae4f194b2075c739c8ddb7
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
 
-      - uses: actions/setup-java@v5
+      - uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
         with:
           distribution: temurin
           java-version: "17"
 
-      - uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@ed408507eac070d1f99cc633dbcf757c94c7933a # v4
 
       - name: Definir versão
         env:
@@ -106,7 +106,7 @@ jobs:
           mkdir -p dist
           cp app/build/outputs/apk/release/*.apk "dist/velar-dns-${{ github.run_number }}.apk"
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: velar-dns-apk
           path: dist/*.apk

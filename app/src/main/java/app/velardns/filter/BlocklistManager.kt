@@ -35,6 +35,12 @@ object BlocklistManager {
     private const val MERGED_FILE = "merged.txt"
 
     /**
+     * Tamanho máximo aceito por lista (as reais têm poucos MB). Protege a memória
+     * da TV Box caso uma fonte seja invadida ou passe a servir um arquivo gigante.
+     */
+    private const val MAX_LIST_BYTES = 20L * 1024 * 1024
+
+    /**
      * Fontes públicas, gratuitas e mantidas pela comunidade.
      * (URLhaus saiu na 1.3.2: o abuse.ch encerrou os downloads sem chave e a URL devolve HTTP 410.)
      */
@@ -169,11 +175,28 @@ object BlocklistManager {
             .build()
         val file = File(appDir, "${source.id}.txt")
         val tmp = File(appDir, "${source.id}.tmp")
-        httpClient.newCall(request).execute().use { response ->
-            if (!response.isSuccessful) throw Exception("HTTP ${response.code}")
-            val body = response.body ?: throw Exception("resposta vazia")
-            // Baixa para um arquivo temporário: se cair no meio, o cache anterior continua intacto.
-            tmp.outputStream().use { out -> body.byteStream().copyTo(out) }
+        try {
+            httpClient.newCall(request).execute().use { response ->
+                if (!response.isSuccessful) throw Exception("HTTP ${response.code}")
+                val body = response.body ?: throw Exception("resposta vazia")
+                if (body.contentLength() > MAX_LIST_BYTES) throw Exception("lista grande demais")
+                // Baixa para um arquivo temporário: se cair no meio, o cache anterior continua intacto.
+                tmp.outputStream().use { out ->
+                    val input = body.byteStream()
+                    val buf = ByteArray(64 * 1024)
+                    var total = 0L
+                    while (true) {
+                        val n = input.read(buf)
+                        if (n < 0) break
+                        total += n
+                        if (total > MAX_LIST_BYTES) throw Exception("lista grande demais")
+                        out.write(buf, 0, n)
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            tmp.delete()
+            throw e
         }
         if (tmp.length() == 0L) { tmp.delete(); throw Exception("lista vazia") }
         if (!tmp.renameTo(file)) { tmp.copyTo(file, overwrite = true); tmp.delete() }
